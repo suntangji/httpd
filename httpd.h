@@ -19,8 +19,8 @@
 
 typedef struct {
   char method[10];
-  char uri[1024];
-  char version[4];
+  char path[1024];
+  char version[8];
 } Request;
 
 void * handler_request(void *arg);

@@ -36,16 +36,19 @@ int main() {
   // 6. 等待连接
   struct sockaddr_in client;
   socklen_t len = sizeof(client);
-  printf("* Running on http://%s:%d/ (Press CTRL+C to quit)\n", conf.ip, conf.port);
+  fprintf(stderr, "* Running on http://%s:%d/ (Press CTRL+C to quit)\n", conf.ip, conf.port);
   while (1) {
     // 7. accept
+#ifdef DEBUG
+    fprintf(stderr, "wait connecting!\n");
+#endif
     int new_sock = accept(sockfd, (struct sockaddr*)&client, &len);
     if (new_sock < 0) {
       fprintf(stderr, "accept error!\n");
       continue;
     }
 #ifdef DEBUG
-    printf("A new client has been connected!\n");
+    fprintf(stderr, "A new client has been connected!\n");
 #endif
     pthread_t thread_id;
     int *sock = &new_sock;
