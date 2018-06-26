@@ -70,7 +70,6 @@ static int HandlerResponse(int sockfd, Request *req, int status) {
   char content_length[30] = {0};
   sprintf(content_length, "Content-Length: %lu\r\n", strlen(body));
   send(sockfd,content_length,strlen(content_length),0);
-
   /*const char * connect = "Connection: keep-alive\r\n";*/
   /*send(sockfd,connect,strlen(connect),0);*/
 
