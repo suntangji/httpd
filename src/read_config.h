@@ -7,14 +7,18 @@
 #define __READ_CONFIG_H__
 
 typedef struct {
-  char ip[15];
+  char ip[20];
+  char root[100];
   int port;
 } config_t;
 
+extern config_t conf;
+
+
 #define CONFIG_FILE_PATH "/home/stj/code/project/httpd/conf/httpd.conf"
+#define ROOT "/home/stj/code/project/httpd/wwwroot"
 #define DEFAULT_PORT 8000
 #define DEFAULT_IP "0.0.0.0"
 
-int read_config(config_t *conf);
-
+int read_config();
 #endif /* end of include guard: __READ_CONFIG_H__ */

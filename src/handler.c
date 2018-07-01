@@ -126,12 +126,12 @@ static void HandlerResponse(int sockfd, Request *req, int status) {
   }
 }
 void *handler_request(void *arg) {
-  int sockfd = *(int *)arg;
+  int sockfd = (int64_t)arg;
   /*printf("%d\n", sockfd);*/
   Request req;
   int status = ParserRequest(sockfd, &req);
   /*status = 405;*/
-  printf("%d\n", status);
+  /*printf("%d\n", status);*/
   HandlerResponse(sockfd, &req, status);
   close(sockfd);
 #ifdef DEBUG

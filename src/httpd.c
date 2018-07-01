@@ -6,11 +6,12 @@
 #include "httpd.h"
 #include "read_config.h"
 
+config_t conf;
+
 int main() {
 
   // 1. 读取配置文件
-  config_t conf;
-  int read_config_stat = read_config(&conf);
+  int read_config_stat = read_config();
   if (read_config_stat < 0) {
     perror("read_config");
     return -1;
@@ -42,11 +43,12 @@ int main() {
   struct sockaddr_in client;
   socklen_t len = sizeof(client);
   fprintf(stderr, "* Running on http://%s:%d/ (Press CTRL+C to quit)\n", conf.ip, conf.port);
+  /*printf("%d\n", conf.port);*/
   while (1) {
     // 7. accept
 #ifdef DEBUG
 #endif
-    int new_sock = accept(sockfd, (struct sockaddr *)&client, &len);
+    int64_t new_sock = accept(sockfd, (struct sockaddr *)&client, &len);
     if (new_sock < 0) {
       fprintf(stderr, "accept error!\n");
       perror("accept");
@@ -55,8 +57,7 @@ int main() {
 #ifdef DEBUG
 #endif
     pthread_t thread_id;
-    int *sock = &new_sock;
-    pthread_create(&thread_id, 0, handler_request, (void *)sock);
+    pthread_create(&thread_id, 0, handler_request, (void *)new_sock);
     pthread_detach(thread_id);
   }
   // 8. close
