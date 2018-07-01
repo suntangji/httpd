@@ -1,3 +1,8 @@
+/// \file httpd.h
+/// \brief socket 相关头文件，一些参数定义
+/// \author suntangji, suntangj2016@gmail.com
+/// \version 1.0
+/// \date 2018-07-01
 #ifndef __HTTPD_H__
 #define __HTTPD_H__
 
@@ -23,7 +28,7 @@ typedef struct {
   char version[8];
 } Request;
 
-void * handler_request(void *arg);
+void *handler_request(void *arg);
 
 
 #endif /* end of include guard: __HTTPD_H__ */

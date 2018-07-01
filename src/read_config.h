@@ -1,3 +1,8 @@
+/// \file read_config.h
+/// \brief 配置文件相关
+/// \author suntangji, suntangj2016@gmail.com
+/// \version 1.0
+/// \date 2018-07-01
 #ifndef __READ_CONFIG_H__
 #define __READ_CONFIG_H__
 
