@@ -18,6 +18,7 @@
 #include <sys/sendfile.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <ctype.h>
 
 #define DEBUG
 #define LISTEN_SIZE 10
@@ -25,6 +26,7 @@
 typedef struct {
   char method[10];
   char path[1024];
+  char query_string[1024];
   char version[8];
 } Request;
 

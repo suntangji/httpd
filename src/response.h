@@ -11,5 +11,7 @@ void Handler_200(int sockfd, Request *req);
 void Handler_400(int sockfd);
 void Handler_405(int sockfd);
 void Handler_500(int sockfd);
+void Handler_501(int sockfd);
+void HandlerStatic(int sockfd, char *path);
 
 #endif /* end of include guard: __RESPONSE_H__ */

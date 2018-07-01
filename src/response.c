@@ -12,12 +12,17 @@
 /// \param status 此参数表示响应状态
 /// \param body 如果是200，body为响应，其他为响应状态描述
 static void HandlerCommon(int sockfd, int status, const char *body) {
-  /*const char *body = "<h1>200 OK</h1>";*/
   char desc[20] = "OK";
+  char html[1024 * 4];
+  sprintf(html, "<html style=\"margin:0;padding:0 \"><head><title>%d %s</title></head>\
+      <body><center><h1>%d %s</h1></center><hr>\
+      <center>httpd</center></body></html>",
+          status, body, status, body);
+
   if (status != 200) {
     strcpy(desc, body);
   }
-  char first_line[30];
+  char first_line[60];
   sprintf(first_line, "HTTP/1.1 %d %s\r\n", status, desc);
   /*const char *first_line = "HTTP/1.0 200 OK\r\n";*/
   send(sockfd, first_line, strlen(first_line),0);
@@ -27,19 +32,29 @@ static void HandlerCommon(int sockfd, int status, const char *body) {
   const char *content_type = "Content-Type: text/html; charset=utf-8\r\n";
   send(sockfd,content_type,strlen(content_type),0);
   char content_length[30] = {0};
-  sprintf(content_length, "Content-Length: %lu\r\n", strlen(body));
+  sprintf(content_length, "Content-Length: %lu\r\n", strlen(html));
   send(sockfd,content_length,strlen(content_length),0);
   /*const char * connect = "Connection: keep-alive\r\n";*/
   /*send(sockfd,connect,strlen(connect),0);*/
 
   const char *blank_line="\r\n";
   send(sockfd, blank_line, strlen(blank_line), 0);
-  send(sockfd, body, strlen(body), 0);
+  if (strcasecmp(body, "HEAD") != 0) {
+    send(sockfd,html, strlen(html), 0);
+  }
 
 }
 
 void Handler_200(int sockfd, Request *req) {
-  HandlerCommon(sockfd, 200, "test httpd");
+  if (strcasecmp(req->method, "HEAD") == 0) {
+    HandlerCommon(sockfd, 200, "HEAD");
+  } else if ((strcasecmp(req->method, "GET") == 0) && strcasecmp(req->query_string, "") == 0) {
+    /*HandlerStatic(sockfd, req->path);*/
+    /*printf("query_string:%s\n", req->query_string);*/
+    HandlerCommon(sockfd, 200, "OK");
+  } else {
+    HandlerCommon(sockfd, 200, "OK");
+  }
 }
 void Handler_400(int sockfd) {
   HandlerCommon(sockfd, 400, "Bad Request");
@@ -49,4 +64,7 @@ void Handler_405(int sockfd) {
 }
 void Handler_500(int sockfd) {
   HandlerCommon(sockfd, 500, "Internal Server Error");
+}
+void Handler_501(int sockfd) {
+  HandlerCommon(sockfd, 501, "Not Implemented");
 }

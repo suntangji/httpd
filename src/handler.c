@@ -2,8 +2,6 @@
 /// \brief 解析请求
 /// \author suntangji, suntangj2016@gmail.com
 /// \version 1.0
-/// \date 2018-07-01
-#include <ctype.h>
 #include "httpd.h"
 #include "response.h"
 
@@ -57,23 +55,46 @@ static int ParserRequest(int sockfd, Request *req) {
     strcpy(req->method, "GET");
   } else if (strcasecmp(buf, "POST") == 0) {
     strcpy(req->method, "POST");
+  } else if (strcasecmp(buf, "HEAD") == 0) {
+    strcpy(req->method, "HEAD");
   } else {
-    return 405;
-    // 方法不允许
+    /// \brief while 读取所有请求
+    /// 要不然无法完成响应
+    /// \param read_size
+    while (read_size) {
+      read_size = GetLine(sockfd, buf, sizeof(buf));
+      printf("%s", buf);
+      if (strcmp(buf, "\n") == 0) {
+        break;
+      }
+    }
+    return 501;
+    // 方法暂不支持
   }
   // 判断请求路径
   char *path = buf;
   path += strlen(buf) + 1;
-  strcpy(req->path, path);
-
   // 判断 http 版本
   char *version = path;
   version += strlen(path) + 1;
   strcpy(req->version, version);
+  // 判断 query_string
+  char *query_string = path;
+  while (*query_string != '\0') {
+    if (*query_string == '?') {
+      *query_string = '\0';
+      query_string++;
+      strcpy(req->query_string, query_string);
+      break;
+    } else {
+      query_string++;
+    }
+  }
+  strcpy(req->path, path);
+
 
 #ifdef DEBUG
-  fprintf(stderr, "%s %s %s\n", req->method, req->path, req->version);
-  /*fprintf(stderr, "%s\n", path);*/
+  fprintf(stderr, "%s %s %s \n", req->method, req->path, req->version);
 #endif
   while (read_size) {
     read_size = GetLine(sockfd, buf, sizeof(buf));
@@ -92,8 +113,13 @@ static void HandlerResponse(int sockfd, Request *req, int status) {
     break;
   case 400:
     Handler_400(sockfd);
+    break;
   case 405:
     Handler_405(sockfd);
+    break;
+  case 501:
+    Handler_501(sockfd);
+    break;
   default:
     Handler_500(sockfd);
 
@@ -104,6 +130,8 @@ void *handler_request(void *arg) {
   /*printf("%d\n", sockfd);*/
   Request req;
   int status = ParserRequest(sockfd, &req);
+  /*status = 405;*/
+  printf("%d\n", status);
   HandlerResponse(sockfd, &req, status);
   close(sockfd);
 #ifdef DEBUG

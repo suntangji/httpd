@@ -11,7 +11,7 @@ typedef struct {
   int port;
 } config_t;
 
-#define CONFIG_FILE_PATH "../conf/httpd.conf"
+#define CONFIG_FILE_PATH "/home/stj/code/project/httpd/conf/httpd.conf"
 #define DEFAULT_PORT 8000
 #define DEFAULT_IP "0.0.0.0"
 
