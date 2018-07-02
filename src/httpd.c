@@ -16,6 +16,7 @@ int main() {
     perror("read_config");
     return -1;
   }
+
   // 2. 创建 socket
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0) {
@@ -42,24 +43,34 @@ int main() {
   // 6. 等待连接
   struct sockaddr_in client;
   socklen_t len = sizeof(client);
-  fprintf(stderr, "* Running on http://%s:%d/ (Press CTRL+C to quit)\n", conf.ip, conf.port);
-  /*printf("%d\n", conf.port);*/
+  // 把标准错误重定向，用于打印日志
+  int log_fd = open(conf.log, O_WRONLY | O_APPEND | O_CREAT, 0644);
+  if (log_fd < 0) {
+    perror("打开 log 文件");
+    return -1;
+  } else {
+    dup2(log_fd, 2);
+  }
+  printf("* Running on http://%s:%d/ (Press CTRL+C to quit)\n", conf.ip, conf.port);
   while (1) {
     // 7. accept
-#ifdef DEBUG
-#endif
-    int64_t new_sock = accept(sockfd, (struct sockaddr *)&client, &len);
+    int new_sock = accept(sockfd, (struct sockaddr *)&client, &len);
     if (new_sock < 0) {
       fprintf(stderr, "accept error!\n");
       perror("accept");
       continue;
     }
+    res_param_t *res_param = (res_param_t *)malloc(sizeof(res_param_t));
+    res_param->sockfd = new_sock;
+    strcpy(res_param->client_ip, inet_ntoa(client.sin_addr));
 #ifdef DEBUG
+    /*printf("%s\n", res_param->client_ip);*/
 #endif
     pthread_t thread_id;
-    pthread_create(&thread_id, 0, handler_request, (void *)new_sock);
+    pthread_create(&thread_id, 0, handler_request, res_param);
     pthread_detach(thread_id);
   }
   // 8. close
+  close(log_fd);
   return 0;
 }

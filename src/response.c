@@ -32,6 +32,9 @@ static void HandlerCommon(int sockfd, int status, const char *body, size_t lengt
   sprintf(first_line, "HTTP/1.1 %d %s\r\n", status, desc);
   /*const char *first_line = "HTTP/1.0 200 OK\r\n";*/
   send(sockfd, first_line, strlen(first_line),0);
+  /// log
+  fprintf(stderr, "%d %s\n", status, desc);
+  /// end log
   const char *server = "Server: httpd\r\n";
   send(sockfd, server,strlen(server),0);
 
@@ -40,8 +43,9 @@ static void HandlerCommon(int sockfd, int status, const char *body, size_t lengt
   char content_length[30] = {0};
   sprintf(content_length, "Content-Length: %lu\r\n", length);
   send(sockfd,content_length,strlen(content_length),0);
-  /*const char * connect = "Connection: keep-alive\r\n";*/
-  /*send(sockfd,connect,strlen(connect),0);*/
+  const char *connect = "Connection: close\r\n";
+  send(sockfd,connect,strlen(connect),0);
+  // keep-alive
 
   const char *blank_line="\r\n";
   send(sockfd, blank_line, strlen(blank_line), 0);
@@ -71,13 +75,13 @@ void HandlerStatic(int sockfd, char *path) {
   struct stat st;
   int ret = GetPath(root, path);
   if (ret < 0) {
-    fprintf(stderr, "path not exist!\n");
+    /*fprintf(stderr, "path not exist!\n");*/
     Handler_404(sockfd);
   } else {
     // 路径存在, 获取文件大小
     int fd = open(root, O_RDONLY);
     if (fd < 0) {
-      perror("open");
+      /*perror("open");*/
       Handler_403(sockfd);
     } else {
       stat(root, &st);

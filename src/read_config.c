@@ -16,6 +16,7 @@ int read_config() {
   int port = DEFAULT_PORT;
   char ip[20] = DEFAULT_IP;
   char root[100] = ROOT;
+  char log[100] = LOG_PATH;
   char temp[1024] = { 0 };
   while (!feof(fp)) {
     fgets(temp, sizeof(temp), fp);
@@ -35,11 +36,16 @@ int read_config() {
     if (read_root > 0) {
       continue;
     }
+    int read_log = sscanf(temp, "log %s", log);
+    if (read_log > 0) {
+      continue;
+    }
   }
   fclose(fp);
   strcpy(conf.ip, ip);
   conf.port = port;
   strcpy(conf.root, root);
+  strcpy(conf.log, log);
   /*printf("%s %d %s\n", conf->ip, conf->port, conf->root);*/
   return 0;
 }

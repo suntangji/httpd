@@ -58,12 +58,15 @@ static int ParserRequest(int sockfd, Request *req) {
   } else if (strcasecmp(buf, "HEAD") == 0) {
     strcpy(req->method, "HEAD");
   } else {
+    /// log
+    fprintf(stderr, "%s ", buf);
+    /// end log
     /// \brief while 读取所有请求
     /// 要不然无法完成响应
     /// \param read_size
     while (read_size) {
       read_size = GetLine(sockfd, buf, sizeof(buf));
-      printf("%s", buf);
+      /*printf("%s", buf);*/
       if (strcmp(buf, "\n") == 0) {
         break;
       }
@@ -93,12 +96,12 @@ static int ParserRequest(int sockfd, Request *req) {
   strcpy(req->path, path);
 
 
-#ifdef DEBUG
-  fprintf(stderr, "%s %s %s \n", req->method, req->path, req->version);
-#endif
+  /// log
+  fprintf(stderr, "%s %s %s ", req->method, req->path, req->version);
+  /// end log
   while (read_size) {
     read_size = GetLine(sockfd, buf, sizeof(buf));
-    printf("%s", buf);
+    /*printf("%s", buf);*/
     if (strcmp(buf, "\n") == 0) {
       break;
     }
@@ -111,12 +114,12 @@ static void HandlerResponse(int sockfd, Request *req, int status) {
   case 200:
     Handler_200(sockfd, req);
     break;
-  case 400:
-    Handler_400(sockfd);
-    break;
-  case 405:
-    Handler_405(sockfd);
-    break;
+  //case 400:
+  //Handler_400(sockfd);
+  //break;
+  //case 405:
+  //Handler_405(sockfd);
+  //break;
   case 501:
     Handler_501(sockfd);
     break;
@@ -126,17 +129,43 @@ static void HandlerResponse(int sockfd, Request *req, int status) {
   }
 }
 void *handler_request(void *arg) {
-  int sockfd = (int64_t)arg;
+  res_param_t *res_param = (res_param_t *)arg;
+  int sockfd = res_param->sockfd;
   /*printf("%d\n", sockfd);*/
+  /// log
+  char time[30];
+  GetTime(time);
+  PrintLog(time);
+  char client_ip[20];
+  strcpy(client_ip, res_param->client_ip);
+  PrintLog(client_ip);
+  /// end log
   Request req;
   int status = ParserRequest(sockfd, &req);
   /*status = 405;*/
   /*printf("%d\n", status);*/
   HandlerResponse(sockfd, &req, status);
+
   close(sockfd);
+  free(res_param);
 #ifdef DEBUG
-  fprintf(stderr, "HandlerResponse OK!\n");
+  /*fprintf(stderr, "HandlerResponse OK!\n");*/
 #endif
 
   return NULL;
+}
+
+void GetTime(char *buf) {
+  time_t now;
+  struct tm *timenow;
+  time(&now);
+  timenow = localtime(&now);
+  /*printf("%s\n",asctime(timenow));*/
+  sprintf(buf, "%d/%02d/%02d %02d:%02d:%02d ", timenow->tm_year + 1900,
+          timenow->tm_mon + 1, timenow->tm_mday,
+          timenow->tm_hour, timenow->tm_min, timenow->tm_sec);
+}
+// 非线程安全
+void PrintLog(const char *log) {
+  fprintf(stderr, "%s ", log);
 }

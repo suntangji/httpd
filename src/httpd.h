@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <ctype.h>
+#include <time.h>
 
 #define DEBUG
 #define LISTEN_SIZE 10
@@ -30,7 +31,14 @@ typedef struct {
   char version[8];
 } Request;
 
+typedef struct {
+  int sockfd;
+  char client_ip[20];
+} res_param_t;
+
 void *handler_request(void *arg);
+void PrintLog(const char *log);
+void GetTime(char *buf);
 
 
 #endif /* end of include guard: __HTTPD_H__ */
