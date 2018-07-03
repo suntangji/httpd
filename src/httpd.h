@@ -18,6 +18,7 @@
 #include <sys/sendfile.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <ctype.h>
 #include <time.h>
 

@@ -17,8 +17,8 @@ extern config_t conf;
 
 
 #define CONFIG_FILE_PATH "/home/stj/code/project/httpd/conf/httpd.conf"
-#define ROOT "/home/stj/code/project/httpd/wwwroot"
-#define LOG_PATH "/home/stj/code/project/httpd/logs/httpd.log"
+#define ROOT "./wwwroot"
+#define LOG_PATH "./logs/httpd.log"
 #define DEFAULT_IP "0.0.0.0"
 #define DEFAULT_PORT 8000
 

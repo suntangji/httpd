@@ -15,6 +15,6 @@ void Handler_405(int sockfd);
 void Handler_500(int sockfd);
 void Handler_501(int sockfd);
 void HandlerStatic(int sockfd, char *path);
-void HandlerDynamic(int sockfd, char *path);
+void HandlerDynamic(int sockfd, Request *req);
 
 #endif /* end of include guard: __RESPONSE_H__ */

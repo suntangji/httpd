@@ -57,7 +57,11 @@ static void HandlerCommon(int sockfd, int status, const char *body, size_t lengt
 
 static int GetPath(char *path_dst, const char *path_src) {
   struct stat st;
-  strcat(path_dst, conf.root);
+  strcpy(path_dst, conf.root);
+  size_t path_len = strlen(path_dst);
+  if (path_dst[path_len - 1] == '/') {
+    path_dst[path_len - 1] = '\0';
+  }
   strcat(path_dst, path_src);
   if (stat(path_dst, &st) < 0) {
     // 判断是否存在
@@ -65,7 +69,11 @@ static int GetPath(char *path_dst, const char *path_src) {
   } else {
     if (S_ISDIR(st.st_mode)) {
       // 判断目录
-      strcat(path_dst, "index.html");
+      if (path_dst[strlen(path_dst) - 1] == '/') {
+        strcat(path_dst, "index.html");
+      } else {
+        strcat(path_dst, "/index.html");
+      }
     }
     return 0;
   }
@@ -81,7 +89,6 @@ void HandlerStatic(int sockfd, char *path) {
     // 路径存在, 获取文件大小
     int fd = open(root, O_RDONLY);
     if (fd < 0) {
-      /*perror("open");*/
       Handler_403(sockfd);
     } else {
       stat(root, &st);
@@ -91,9 +98,94 @@ void HandlerStatic(int sockfd, char *path) {
     }
   }
 }
-void HandlerDynamic(int sockfd, char *path) {
 
+void GetCGIPath(char *path_dst, const char *path_src) {
+  strcpy(path_dst, conf.root);
+  if (path_dst[strlen(path_dst) - 1] == '/') {
+    strcat(path_dst, "cgi-bin");
+  } else {
+    strcat(path_dst, "/cgi-bin");
+  }
+  strcat(path_dst, path_src);
+
+  /*printf("%s\n", path_dst);*/
 }
+
+void HandlerCGI(int sockfd, Request *req, const char *path) {
+  printf("HandlerCGI\n");
+  int father_pipe[2];
+  int child_pipe[2];
+  if (pipe(father_pipe) < 0) {
+    Handler_500(sockfd);
+    return;
+  }
+  if (pipe(child_pipe) < 0) {
+    close(father_pipe[0]);
+    close(father_pipe[1]);
+    Handler_500(sockfd);
+    return;
+  }
+  int read_father= father_pipe[0];
+  int write_father= father_pipe[1];
+  int read_child= child_pipe[0];
+  int write_child= child_pipe[1];
+  int ret = fork();
+  if (ret > 0) {
+    // father
+    close(read_father);
+    close(write_child);
+    int ch;
+    while (read(read_child, &ch, 1) > 0) {
+      send(sockfd, &ch, 1, 0);
+    }
+    waitpid(ret, NULL, 0);
+
+
+  } else if (ret == 0) {
+    // child
+    close(write_father);
+    close(read_child);
+    dup2(read_father, 0);
+    dup2(write_child, 1);
+    char method_env[20];
+    char query_string_env[1024 * 2];
+    /*char content_length_env[30];*/
+    sprintf(method_env, "METHOD=%s", req->method);
+    putenv(method_env);
+    if (strcasecmp(req->method, "GET") == 0) {
+      sprintf(query_string_env, "QUERY_STRING=%s", req->query_string);
+      putenv(query_string_env);
+    } else {
+      /*sprintf(content_length_env, "CONTENT_LENGTH=%s", )*/
+      execl(path, path, NULL);
+      exit(1);
+
+    }
+  } else {
+    Handler_500(sockfd);
+    return;
+  }
+}
+void HandlerDynamic(int sockfd, Request *req) {
+  // cgi
+  char path[1024];
+  GetCGIPath(path, req->path);
+  struct stat st;
+  if (stat(path, &st) < 0) {
+    Handler_404(sockfd);
+  } else if (S_ISDIR(st.st_mode)) {
+    Handler_403(sockfd);
+  } else if ((st.st_mode & S_IXUSR)
+             || (st.st_mode & S_IXGRP)
+             || (st.st_mode & S_IXOTH)) {
+    // cgi
+    HandlerCGI(sockfd, req, path);
+  } else {
+    Handler_403(sockfd);
+  }
+  return;
+}
+
 void Handler_200(int sockfd, Request *req) {
   if (strcasecmp(req->method, "HEAD") == 0) {
     HandlerCommon(sockfd, 200, NULL, 0);
@@ -104,6 +196,8 @@ void Handler_200(int sockfd, Request *req) {
     /*HandlerCommon(sockfd, 200, "OK");*/
   } else {
     HandlerCommon(sockfd, 200, "OK", 0);
+    /*HandlerDynamic(sockfd, req);*/
+    printf("HandlerDynamic Done!\n");
 
   }
 }

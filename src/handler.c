@@ -35,6 +35,8 @@ static int GetLine(int fd, char *buf, int len) {
   return i;
 }
 static int ParserRequest(int sockfd, Request *req) {
+  strcpy(req->query_string, "");
+  printf("before ParserRequest:%s\n", req->query_string);
   char buf[1024] = { 0 };
   int read_size = GetLine(sockfd, buf, sizeof(buf));
   if (read_size <= 0) {
@@ -77,6 +79,8 @@ static int ParserRequest(int sockfd, Request *req) {
   // 判断请求路径
   char *path = buf;
   path += strlen(buf) + 1;
+  char path_log[1024];
+  strcpy(path_log, path);
   // 判断 http 版本
   char *version = path;
   version += strlen(path) + 1;
@@ -95,9 +99,10 @@ static int ParserRequest(int sockfd, Request *req) {
   }
   strcpy(req->path, path);
 
-
   /// log
-  fprintf(stderr, "%s %s %s ", req->method, req->path, req->version);
+  fprintf(stderr, "%s %s %s ", req->method,
+          path_log,req->version);
+
   /// end log
   while (read_size) {
     read_size = GetLine(sockfd, buf, sizeof(buf));
@@ -106,7 +111,7 @@ static int ParserRequest(int sockfd, Request *req) {
       break;
     }
   }
-
+  printf("ParserRequest::query_string:%s\n",req->query_string);
   return 200;
 }
 static void HandlerResponse(int sockfd, Request *req, int status) {
@@ -140,6 +145,7 @@ void *handler_request(void *arg) {
   strcpy(client_ip, res_param->client_ip);
   PrintLog(client_ip);
   /// end log
+  /*Request *req = (Request *)malloc(sizeof(Request));*/
   Request req;
   int status = ParserRequest(sockfd, &req);
   /*status = 405;*/
@@ -148,10 +154,10 @@ void *handler_request(void *arg) {
 
   close(sockfd);
   free(res_param);
+  /*free(req);*/
 #ifdef DEBUG
   /*fprintf(stderr, "HandlerResponse OK!\n");*/
 #endif
-
   return NULL;
 }
 

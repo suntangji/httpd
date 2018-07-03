@@ -21,8 +21,11 @@ int read_config() {
   while (!feof(fp)) {
     fgets(temp, sizeof(temp), fp);
     /*fscanf(fp,"server_ip %s",&port);*/
-    if (temp[0] == '#') {
-      continue;
+    for (size_t i = 0; i < strlen(temp); i++) {
+      if (temp[i] == '#') {
+        temp[i] = '\0';
+        break;
+      }
     }
     int read_listen= sscanf(temp, "listen %d", &port);
     if (read_listen > 0) {
