@@ -30,6 +30,7 @@ typedef struct {
   char path[1024];
   char query_string[1024];
   char version[8];
+  int content_lens;
 } Request;
 
 typedef struct {

@@ -60,6 +60,7 @@ int main() {
       perror("accept");
       continue;
     }
+    printf("new connect\n");
     res_param_t *res_param = (res_param_t *)malloc(sizeof(res_param_t));
     res_param->sockfd = new_sock;
     strcpy(res_param->client_ip, inet_ntoa(client.sin_addr));

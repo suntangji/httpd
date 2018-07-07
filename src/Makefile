@@ -1,6 +1,6 @@
 .PHONY: clean
-CC = gcc
-CFLAGS = -g -Wall -lpthread
+CC = clang
+CFLAGS = -g -Wall 
 TARGRT = httpd 
 BIN_PATH = ./bin
 BIN_TARGET = $(BIN_PATH)/$(TARGRT)
@@ -11,7 +11,7 @@ OBJ = $(OBJ_PATH)/httpd.o $(OBJ_PATH)/read_config.o $(OBJ_PATH)/handler.o $(OBJ_
 all: TARGRT
 
 TARGRT: $(OBJ)	
-	$(CC) $(CFLAGS) -o $(BIN_TARGET) $^
+	$(CC) $(CFLAGS) -lpthread -o $(BIN_TARGET) $^
 
 $(OBJ_PATH)/%.o: %.c httpd.h
 	$(CC) $(CFLAGS) -c -o $@ $<

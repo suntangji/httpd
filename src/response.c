@@ -43,8 +43,8 @@ static void HandlerCommon(int sockfd, int status, const char *body, size_t lengt
   char content_length[30] = {0};
   sprintf(content_length, "Content-Length: %lu\r\n", length);
   send(sockfd,content_length,strlen(content_length),0);
-  const char *connect = "Connection: close\r\n";
-  send(sockfd,connect,strlen(connect),0);
+  /*const char *connect = "Connection: close\r\n";*/
+  /*send(sockfd,connect,strlen(connect),0);*/
   // keep-alive
 
   const char *blank_line="\r\n";
@@ -125,30 +125,44 @@ void HandlerCGI(int sockfd, Request *req, const char *path) {
     Handler_500(sockfd);
     return;
   }
-  int read_father= father_pipe[0];
-  int write_father= father_pipe[1];
-  int read_child= child_pipe[0];
-  int write_child= child_pipe[1];
+  int father_output = father_pipe[0];
+  int father_input = father_pipe[1];
+  int child_output = child_pipe[0];
+  int child_input = child_pipe[1];
   int ret = fork();
   if (ret > 0) {
     // father
-    close(read_father);
-    close(write_child);
+    close(father_output);
+    close(child_input);
     int ch;
-    while (read(read_child, &ch, 1) > 0) {
-      send(sockfd, &ch, 1, 0);
+    /// \brief for 把 body 部分写入管道
+    for (int i = 0; i < req->content_lens; ++i) {
+      recv(sockfd, &ch, 1, 0);
+      write(father_input, &ch, 1);
     }
+
+    char *buf = (char *)malloc(1024 * 1000);
+    int i = 0;
+    while (read(child_output, &ch, 1) > 0) {
+      /*send(sockfd, &ch, 1, 0);*/
+      buf[i++] = ch;
+    }
+    buf[i] = '\0';
+    HandlerCommon(sockfd, 200, "OK", strlen(buf));
+    send(sockfd, buf, strlen(buf), 0);
+
     waitpid(ret, NULL, 0);
-
-
+    close(father_input);
+    close(child_output);
   } else if (ret == 0) {
     // child
-    close(write_father);
-    close(read_child);
-    dup2(read_father, 0);
-    dup2(write_child, 1);
+    close(father_input);
+    close(child_output);
+    dup2(child_input, 1);
+    dup2(father_output, 0);
     char method_env[20];
     char query_string_env[1024 * 2];
+    char content_length_env[40];
     /*char content_length_env[30];*/
     sprintf(method_env, "METHOD=%s", req->method);
     putenv(method_env);
@@ -156,11 +170,11 @@ void HandlerCGI(int sockfd, Request *req, const char *path) {
       sprintf(query_string_env, "QUERY_STRING=%s", req->query_string);
       putenv(query_string_env);
     } else {
-      /*sprintf(content_length_env, "CONTENT_LENGTH=%s", )*/
-      execl(path, path, NULL);
-      exit(1);
-
+      sprintf(content_length_env, "CONTENT_LENGTH=%d", req->content_lens);
+      putenv(content_length_env);
     }
+    execl(path, path, NULL);
+    exit(1);
   } else {
     Handler_500(sockfd);
     return;
@@ -174,6 +188,7 @@ void HandlerDynamic(int sockfd, Request *req) {
   if (stat(path, &st) < 0) {
     Handler_404(sockfd);
   } else if (S_ISDIR(st.st_mode)) {
+    /*printf("isdir:%s\n", path);*/
     Handler_403(sockfd);
   } else if ((st.st_mode & S_IXUSR)
              || (st.st_mode & S_IXGRP)
@@ -195,8 +210,8 @@ void Handler_200(int sockfd, Request *req) {
     printf("HandlerStatic Done!\n");
     /*HandlerCommon(sockfd, 200, "OK");*/
   } else {
-    HandlerCommon(sockfd, 200, "OK", 0);
-    /*HandlerDynamic(sockfd, req);*/
+    /*HandlerCommon(sockfd, 200, "OK", 0);*/
+    HandlerDynamic(sockfd, req);
     printf("HandlerDynamic Done!\n");
 
   }

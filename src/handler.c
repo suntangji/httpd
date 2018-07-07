@@ -35,8 +35,6 @@ static int GetLine(int fd, char *buf, int len) {
   return i;
 }
 static int ParserRequest(int sockfd, Request *req) {
-  strcpy(req->query_string, "");
-  printf("before ParserRequest:%s\n", req->query_string);
   char buf[1024] = { 0 };
   int read_size = GetLine(sockfd, buf, sizeof(buf));
   if (read_size <= 0) {
@@ -106,12 +104,12 @@ static int ParserRequest(int sockfd, Request *req) {
   /// end log
   while (read_size) {
     read_size = GetLine(sockfd, buf, sizeof(buf));
+    sscanf(buf, "Content-length: %d", &(req->content_lens));
     /*printf("%s", buf);*/
     if (strcmp(buf, "\n") == 0) {
       break;
     }
   }
-  printf("ParserRequest::query_string:%s\n",req->query_string);
   return 200;
 }
 static void HandlerResponse(int sockfd, Request *req, int status) {
@@ -147,6 +145,10 @@ void *handler_request(void *arg) {
   /// end log
   /*Request *req = (Request *)malloc(sizeof(Request));*/
   Request req;
+  bzero(req.query_string, strlen(req.query_string));
+  bzero(req.method, strlen(req.method));
+  bzero(req.path, strlen(req.path));
+  bzero(req.version, strlen(req.version));
   int status = ParserRequest(sockfd, &req);
   /*status = 405;*/
   /*printf("%d\n", status);*/
