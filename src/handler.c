@@ -104,22 +104,19 @@ static int ParserRequest(int sockfd, Request *req) {
   /// end log
   while (read_size) {
     read_size = GetLine(sockfd, buf, sizeof(buf));
-    if (strcasecmp(buf, "Content-Length") == 0) {
-      int len = strlen("Content-Length");
+    int len = strlen("Content-Length");
+    if (strncasecmp(buf, "Content-Length", len) == 0) {
       for (int i = 0; i < len; ++i) {
-        int ret = tolower(buf[i]);
-        if (ret < 0) {
-          printf("tolower error!\n");
-        }
+        buf[i] = tolower(buf[i]);
       }
+      /*printf("buf:%s\n", buf);*/
     }
-    sscanf(buf, "Content-Length: %d", &(req->content_lens));
+    sscanf(buf, "content-length: %d", &(req->content_lens));
     /*printf("%s", buf);*/
     if (strcmp(buf, "\n") == 0) {
       break;
     }
   }
-  printf("ParserRequest: content_length=%d", req->content_lens);
   return 200;
 }
 static void HandlerResponse(int sockfd, Request *req, int status) {

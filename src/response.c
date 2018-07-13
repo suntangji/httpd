@@ -136,11 +136,9 @@ void HandlerCGI(int sockfd, Request *req, const char *path) {
     close(child_input);
     int ch;
     /// \brief for 把 body 部分写入管道
-    printf("content_lens:%d", req->content_lens);
     for (int i = 0; i < req->content_lens; ++i) {
       recv(sockfd, &ch, 1, 0);
       write(father_input, &ch, 1);
-      printf("%c\n", ch);
     }
 
     char *buf = (char *)malloc(1024 * 1000);
@@ -149,7 +147,6 @@ void HandlerCGI(int sockfd, Request *req, const char *path) {
       /*send(sockfd, &ch, 1, 0);*/
       buf[i++] = ch;
     }
-    perror("read child_output");
     buf[i] = '\0';
     /*printf("buf:%s\n", buf);*/
     HandlerCommon(sockfd, 200, "OK", strlen(buf));
