@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <!-- import CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.4.3/lib/theme-chalk/index.css">
+  <link href="https://cdn.bootcss.com/github-markdown-css/2.10.0/github-markdown.min.css" rel="stylesheet">
+  <title> Markdown 在线解析</title>
+  <style>
+    .el-header,
+    .el-footer {
+      background-color: lightskyblue;
+      color: #333;
+      text-align: center;
+      line-height: 60px;
+    }
+
+    .el-aside,
+    .el-main {
+      background-color: whitesmoke;
+      color: #333;
+      margin: 1% 0.5%;
+      padding: 0%;
+    }
+
+    img {
+      width: 50%;
+      height: 50%;
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <el-container>
+      <el-header>Markdown 在线解析</el-header>
+      <el-container>
+        <el-aside width="49%">
+          <el-input type="textarea" :rows="26" placeholder="请输入内容" v-model="textarea">
+          </el-input>
+        </el-aside>
+        <el-main>
+          <div id="show" class="markdown-body" v-html="html">
+          </div>
+        </el-main>
+      </el-container>
+      <el-footer>
+        <el-button round @click="parse()">开始解析</el-button>
+      </el-footer>
+    </el-container>
+
+
+  </div>
+</body>
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui@2.4.3/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+  var vm = new Vue({
+    el: '#app',
+    data: {
+      html: '',
+      textarea: `
+# a
+## b
+### c
+
+1. 一
+2. 二
+3. 三
+
+- 一
+- 二
+- 三
+
+a|a
+---|---
+a|a
+
+> 引用
+>> 又一层引用
+
+[https://www.baidu.com/](https://www.baidu.com/)
+
+![baidu](https://www.baidu.com/img/bd_logo1.png?where=super)
+`
+    },
+    methods: {
+      parse: function () {
+        var that = this;
+        axios.post('/markdown', {
+            text: this.textarea
+          })
+          .then(function (response) {
+            // console.log(response.data);
+            that.$message({
+              message: '恭喜你，解析成功',
+              type: 'success',
+              center: true,
+              showClose: true,
+            });
+            dangerouslyUseHTMLString: true
+            that.html = response.data;
+            // console.log(that.html);
+            // document.getElementById('show').innerHTML = this.html;
+          })
+          .catch(function (error) {
+            // console.log(error);
+            that.$message({
+              message: '很遗憾，解析失败',
+              type: 'error',
+              center: true,
+              showClose: true,
+            });
+          });
+      },
+    },
+  });
+</script>
+<script>
+</script>
+
+</html>
