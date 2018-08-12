@@ -141,14 +141,15 @@ static void HandlerResponse(int sockfd, Request *req, int status) {
 void *handler_request(void *arg) {
   res_param_t *res_param = (res_param_t *)arg;
   int sockfd = res_param->sockfd;
+  /*int epoll_fd = res_param->epollfd;*/
   /*printf("%d\n", sockfd);*/
   /// log
   char time[30];
   GetTime(time);
   PrintLog(time);
-  char client_ip[20];
-  strcpy(client_ip, res_param->client_ip);
-  PrintLog(client_ip);
+  /*char client_ip[20];*/
+  /*strcpy(client_ip, res_param->client_ip);*/
+  /*PrintLog(client_ip);*/
   /// end log
   /*Request *req = (Request *)malloc(sizeof(Request));*/
   Request req;
@@ -162,6 +163,7 @@ void *handler_request(void *arg) {
   HandlerResponse(sockfd, &req, status);
 
   close(sockfd);
+  /*epoll_ctl(epoll_fd, EPOLL_CTL_DEL, sockfd, NULL);*/
   free(res_param);
   /*free(req);*/
 #ifdef DEBUG

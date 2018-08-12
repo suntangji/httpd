@@ -149,8 +149,8 @@ void HandlerCGI(int sockfd, Request *req, const char *path) {
     }
     buf[i] = '\0';
     /*printf("buf:%s\n", buf);*/
-    HandlerCommon(sockfd, 200, "OK", strlen(buf));
-    send(sockfd, buf, strlen(buf), 0);
+    HandlerCommon(sockfd, 200, NULL, strlen(buf));
+    send(sockfd, buf, strlen(buf) + 1, 0);
 
     waitpid(ret, NULL, 0);
     close(father_input);

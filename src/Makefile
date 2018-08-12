@@ -1,11 +1,11 @@
 .PHONY: clean
-CC = clang
+CC = gcc
 CFLAGS = -g -Wall 
 TARGRT = httpd 
 BIN_PATH = ./bin
 BIN_TARGET = $(BIN_PATH)/$(TARGRT)
 OBJ_PATH = ./obj
-OBJ = $(OBJ_PATH)/httpd.o $(OBJ_PATH)/read_config.o $(OBJ_PATH)/handler.o $(OBJ_PATH)/response.o
+OBJ = $(OBJ_PATH)/httpd.o $(OBJ_PATH)/read_config.o $(OBJ_PATH)/handler.o $(OBJ_PATH)/response.o $(OBJ_PATH)/epoll.o
 
 
 all: TARGRT

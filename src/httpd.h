@@ -8,19 +8,21 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <string.h>
-#include <pthread.h>
-#include <fcntl.h>
-#include <sys/sendfile.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/wait.h>
 #include <ctype.h>
 #include <time.h>
+#include <pthread.h>
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/epoll.h>
+#include <sys/socket.h>
+#include <sys/sendfile.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
 
 #define DEBUG
 #define LISTEN_SIZE 10
@@ -35,12 +37,16 @@ typedef struct {
 
 typedef struct {
   int sockfd;
-  char client_ip[20];
+  int epollfd;
 } res_param_t;
 
 void *handler_request(void *arg);
 void PrintLog(const char *log);
 void GetTime(char *buf);
+void SetNonBlock(int fd);
+void ProcessConnect(int listen_fd, int epoll_fd);
+ssize_t NonBlockRead(int fd, char *buf, int size);
+void ProcessRequest(int connect_fd, int epoll_fd);
 
 
 #endif /* end of include guard: __HTTPD_H__ */

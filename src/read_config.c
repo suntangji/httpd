@@ -8,7 +8,6 @@
 #include "read_config.h"
 
 int read_config() {
-  /*printf("%s\n", CONFIG_FILE_PATH);*/
   FILE *fp= fopen(CONFIG_FILE_PATH, "r");
   if (!fp) {
     return -1;

@@ -6,6 +6,7 @@
 #ifndef __READ_CONFIG_H__
 #define __READ_CONFIG_H__
 
+#include <unistd.h>
 typedef struct {
   char ip[20];
   char root[100];
@@ -16,7 +17,7 @@ typedef struct {
 extern config_t conf;
 
 
-#define CONFIG_FILE_PATH "/home/stj/code/project/httpd/conf/httpd.conf"
+#define CONFIG_FILE_PATH "/home/suntangji/web/httpd/conf/httpd.conf"
 #define ROOT "./wwwroot"
 #define LOG_PATH "./logs/httpd.log"
 #define DEFAULT_IP "0.0.0.0"
